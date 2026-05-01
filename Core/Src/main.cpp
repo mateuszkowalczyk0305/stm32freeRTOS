@@ -24,7 +24,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "RingBuffer.h"
+#include "bsp_uart.h"
 
+
+extern "C" void MX_FREERTOS_Init(void);
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,7 +61,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+RingBuffer uartBuffer;
 /* USER CODE END 0 */
 
 /**
@@ -91,6 +95,9 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  uartBuffer.init();
+  BSP_UART_Init(&huart2, &uartBuffer);
 
   /* USER CODE END 2 */
 
