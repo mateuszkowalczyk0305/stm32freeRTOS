@@ -1,0 +1,102 @@
+# =========================
+
+# STM32CubeIDE / Eclipse
+
+# =========================
+
+# Build folders
+
+Debug/
+Release/
+build/
+cmake-build-*/
+
+# Generated binaries
+
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+
+# Object files
+
+*.o
+*.obj
+*.d
+*.su
+
+# Linker output
+
+*.lss
+
+# =========================
+
+# STM32CubeMX / .ioc
+
+# =========================
+
+# KEEP .ioc file (important!)
+
+# *.ioc   <-- NIE usuwaj tego!
+
+# Generated code (opcjonalnie – zależy czy chcesz versionować)
+
+# Core/
+
+# Drivers/
+
+# =========================
+
+# IDE (Eclipse / CubeIDE)
+
+# =========================
+
+.settings/
+.metadata/
+*.launch
+
+# User-specific files
+
+*.log
+
+# =========================
+
+# CMake / Ninja (jeśli używasz)
+
+# =========================
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+build.ninja
+.ninja_log
+.ninja_deps
+
+# =========================
+
+# OS files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# VSCode (jeśli używasz)
+
+# =========================
+
+.vscode/
+
+# =========================
+
+# Temporary files
+
+# =========================
+
+*.tmp
+*.bak
+*~
