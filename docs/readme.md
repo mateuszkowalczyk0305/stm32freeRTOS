@@ -153,11 +153,3 @@ The LED (LD2) on the STM32 Nucleo board reflects the system state:
 
 ---
 
-## Next Steps
-
-In the next stage, the system will be extended with:
-
-* WS2812 LED control (DMA + timer)
-* ADC input handling
-* Extended command set
-* More advanced task communication

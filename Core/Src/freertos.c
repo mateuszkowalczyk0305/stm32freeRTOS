@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "commands.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,17 +47,17 @@
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
-/* Definitions for TaskUartCmdCrea */
-osThreadId_t TaskUartCmdCreaHandle;
-const osThreadAttr_t TaskUartCmdCrea_attributes = {
-  .name = "TaskUartCmdCrea",
+/* Definitions for TaskUartCmd */
+osThreadId_t TaskUartCmdHandle;
+const osThreadAttr_t TaskUartCmd_attributes = {
+  .name = "TaskUartCmd",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
-/* Definitions for TaskLedOperatio */
-osThreadId_t TaskLedOperatioHandle;
-const osThreadAttr_t TaskLedOperatio_attributes = {
-  .name = "TaskLedOperatio",
+/* Definitions for TaskLedOper */
+osThreadId_t TaskLedOperHandle;
+const osThreadAttr_t TaskLedOper_attributes = {
+  .name = "TaskLedOper",
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -72,8 +72,8 @@ const osMessageQueueAttr_t QueueLedCommands_attributes = {
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void *argument);
-void StartTask02(void *argument);
+void TFuncUartCmd(void *argument);
+void TFuncLedOper(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -101,18 +101,18 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* creation of QueueLedCommands */
-  QueueLedCommandsHandle = osMessageQueueNew (8, sizeof(uint8_t), &QueueLedCommands_attributes);
+  QueueLedCommandsHandle = osMessageQueueNew (8, sizeof(CommandID), &QueueLedCommands_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of TaskUartCmdCrea */
-  TaskUartCmdCreaHandle = osThreadNew(StartDefaultTask, NULL, &TaskUartCmdCrea_attributes);
+  /* creation of TaskUartCmd */
+  TaskUartCmdHandle = osThreadNew(TFuncUartCmd, NULL, &TaskUartCmd_attributes);
 
-  /* creation of TaskLedOperatio */
-  TaskLedOperatioHandle = osThreadNew(StartTask02, NULL, &TaskLedOperatio_attributes);
+  /* creation of TaskLedOper */
+  TaskLedOperHandle = osThreadNew(TFuncLedOper, NULL, &TaskLedOper_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -124,40 +124,37 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_TFuncUartCmd */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the TaskUartCmd thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_TFuncUartCmd */
+void TFuncUartCmd(void *argument)
 {
-  /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartDefaultTask */
+  /* USER CODE BEGIN TFuncUartCmd */
+  /* Wrapper */
+  extern void UART_Task(void *argument);
+  UART_Task(argument);
+  /* USER CODE END TFuncUartCmd */
 }
 
-/* USER CODE BEGIN Header_StartTask02 */
+/* USER CODE BEGIN Header_TFuncLedOper */
 /**
-* @brief Function implementing the TaskLedOperatio thread.
+* @brief Function implementing the TaskLedOper thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask02 */
-void StartTask02(void *argument)
+/* USER CODE END Header_TFuncLedOper */
+void TFuncLedOper(void *argument)
 {
-  /* USER CODE BEGIN StartTask02 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartTask02 */
+  /* USER CODE BEGIN TFuncLedOper */
+
+	/* Wrapper */
+	extern void LED_Task(void *argument);
+	LED_Task(argument);
+  /* USER CODE END TFuncLedOper */
 }
 
 /* Private application code --------------------------------------------------*/
