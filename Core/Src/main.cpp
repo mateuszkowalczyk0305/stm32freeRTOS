@@ -96,6 +96,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // Interpreter init:
   uartBuffer.init();
   BSP_UART_Init(&huart2, &uartBuffer);
 
