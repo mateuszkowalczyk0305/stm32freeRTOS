@@ -29,6 +29,8 @@
 
 
 extern "C" void MX_FREERTOS_Init(void);
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
