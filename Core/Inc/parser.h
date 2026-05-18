@@ -7,11 +7,12 @@
 
 #pragma once
 
+
 #ifndef INC_PARSER_H_
 #define INC_PARSER_H_
 
 #include "commands.h"
 
-CommandID parseCommand(const char* cmd);
+CommandMessage parseCommand(const char* cmd);
 
 #endif /* INC_PARSER_H_ */

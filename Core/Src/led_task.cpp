@@ -1,33 +1,113 @@
 #include "led_task.h"
-#include "gpio.h"
-#include "cmsis_os.h"
-#include "commands.h"
 
+#include "cmsis_os.h"
+#include "main.h"
+#include "gpio.h"
+#include "commands.h"
+#include "usart.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+extern UART_HandleTypeDef huart2;
 extern osMessageQueueId_t QueueLedCommandsHandle;
 
 extern "C" void LED_Task(void *argument)
 {
-    CommandID cmd;
-    uint8_t blinking = 0;
+    CommandMessage msg;
+    bool blinking = false;
 
     while (1)
     {
-        // sprawdz czy przyszla komenda
-        if (osMessageQueueGet(QueueLedCommandsHandle, &cmd, NULL, 0) == osOK)
+        if (osMessageQueueGet(QueueLedCommandsHandle, &msg, NULL, 0) == osOK)
         {
-            switch (cmd)
+            switch (msg.id)
             {
                 case CMD_ID_START_LED:
-                    blinking = 1;
+                {
+                    blinking = true;
+
+                    const char txBuffer[] = "LED blinking START\r\n";
+
+                    HAL_UART_Transmit(&huart2,
+                                      (uint8_t*)txBuffer,
+                                      strlen(txBuffer),
+                                      100);
+
                     break;
+                }
 
                 case CMD_ID_STOP_LED:
-                    blinking = 0;
+                {
+                    blinking = false;
+
                     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
+                    const char txBuffer[] = "LED blinking STOP\r\n";
+
+                    HAL_UART_Transmit(&huart2,
+                                      (uint8_t*)txBuffer,
+                                      strlen(txBuffer),
+                                      100);
+
                     break;
+                }
+
+                case CMD_ID_SET_LED:
+                {
+                    blinking = false;
+
+                    char txBuffer[100];
+
+                    snprintf(txBuffer, sizeof(txBuffer),
+                             "LED CMD: led=%u brightness=%u R=%u G=%u B=%u\r\n",
+                             msg.led.ledNumber,
+                             msg.led.brightness,
+                             msg.led.red,
+                             msg.led.green,
+                             msg.led.blue);
+
+                    HAL_UART_Transmit(&huart2,
+                                      (uint8_t*)txBuffer,
+                                      strlen(txBuffer),
+                                      100);
+
+                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+
+                    break;
+                }
+
+                case CMD_ID_SET_LED_COUNT:
+                {
+                    blinking = false;
+
+                    char txBuffer[100];
+
+                    snprintf(txBuffer, sizeof(txBuffer),
+                             "PHOTO ADC: %u -> LED count: %u\r\n",
+                             msg.adcRaw,
+                             msg.ledCount);
+
+                    HAL_UART_Transmit(&huart2,
+                                      (uint8_t*)txBuffer,
+                                      strlen(txBuffer),
+                                      100);
+
+                    break;
+                }
 
                 default:
+                {
+                    const char txBuffer[] = "Unknown LED command\r\n";
+
+                    HAL_UART_Transmit(&huart2,
+                                      (uint8_t*)txBuffer,
+                                      strlen(txBuffer),
+                                      100);
+
                     break;
+                }
             }
         }
 

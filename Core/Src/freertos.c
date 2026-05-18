@@ -61,6 +61,13 @@ const osThreadAttr_t TaskLedOper_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for TaskPhoto */
+osThreadId_t TaskPhotoHandle;
+const osThreadAttr_t TaskPhoto_attributes = {
+  .name = "TaskPhoto",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* Definitions for QueueLedCommands */
 osMessageQueueId_t QueueLedCommandsHandle;
 const osMessageQueueAttr_t QueueLedCommands_attributes = {
@@ -74,6 +81,7 @@ const osMessageQueueAttr_t QueueLedCommands_attributes = {
 
 void TFuncUartCmd(void *argument);
 void TFuncLedOper(void *argument);
+void TFuncPhoto(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -101,7 +109,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* creation of QueueLedCommands */
-  QueueLedCommandsHandle = osMessageQueueNew (8, sizeof(CommandID), &QueueLedCommands_attributes);
+  QueueLedCommandsHandle = osMessageQueueNew (8, 12, &QueueLedCommands_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -113,6 +121,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of TaskLedOper */
   TaskLedOperHandle = osThreadNew(TFuncLedOper, NULL, &TaskLedOper_attributes);
+
+  /* creation of TaskPhoto */
+  TaskPhotoHandle = osThreadNew(TFuncPhoto, NULL, &TaskPhoto_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -134,9 +145,11 @@ void MX_FREERTOS_Init(void) {
 void TFuncUartCmd(void *argument)
 {
   /* USER CODE BEGIN TFuncUartCmd */
-  /* Wrapper */
+
+  /* Wrapper do osobnego pliku */
   extern void UART_Task(void *argument);
   UART_Task(argument);
+
   /* USER CODE END TFuncUartCmd */
 }
 
@@ -151,10 +164,29 @@ void TFuncLedOper(void *argument)
 {
   /* USER CODE BEGIN TFuncLedOper */
 
-	/* Wrapper */
+	/* Wrapper do osobnego pliku */
 	extern void LED_Task(void *argument);
 	LED_Task(argument);
+
   /* USER CODE END TFuncLedOper */
+}
+
+/* USER CODE BEGIN Header_TFuncPhoto */
+/**
+* @brief Function implementing the TaskPhoto thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_TFuncPhoto */
+void TFuncPhoto(void *argument)
+{
+  /* USER CODE BEGIN TFuncPhoto */
+
+	/* Wrapper do osobnego pliku */
+	extern void Photo_Task(void *argument);
+	Photo_Task(argument);
+
+  /* USER CODE END TFuncPhoto */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "adc.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -63,7 +65,16 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* Uart */
 RingBuffer uartBuffer;
+
+
+/* Adc */
+volatile uint16_t adc_dma_buffer[16];
+volatile uint16_t photo_adc_raw = 0;
+volatile uint8_t photo_led_count = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -95,12 +106,16 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
-  // Interpreter init:
+  /* Uart interpreter initialization */
   uartBuffer.init();
   BSP_UART_Init(&huart2, &uartBuffer);
+
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_dma_buffer, 16);
 
   /* USER CODE END 2 */
 
@@ -162,8 +177,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_ADC12;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
+  PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();

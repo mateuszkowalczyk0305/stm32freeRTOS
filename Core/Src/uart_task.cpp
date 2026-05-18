@@ -1,24 +1,16 @@
-//#include "uart_task.h"
-//#include "RingBuffer.h"
-//#include "usart.h"
-//#include "cmsis_os.h"
-//#include <string.h>
-//
-//extern RingBuffer uartBuffer;
-//extern UART_HandleTypeDef huart2;
-
 #include "uart_task.h"
 #include "RingBuffer.h"
 #include "usart.h"
 #include "cmsis_os.h"
 #include "parser.h"
+#include "commands.h"
 #include <string.h>
 
 extern RingBuffer uartBuffer;
 extern UART_HandleTypeDef huart2;
 extern osMessageQueueId_t QueueLedCommandsHandle;
 
-#define CMD_MAX 20
+#define CMD_MAX 32
 
 extern "C" void UART_Task(void *argument)
 {
@@ -30,6 +22,9 @@ extern "C" void UART_Task(void *argument)
     {
         if (uartBuffer.pop(c))
         {
+            // Echo odebranego znaku
+            HAL_UART_Transmit(&huart2, &c, 1, 10);
+
             if (c == '\n' || c == '\r')
             {
                 if (idx == 0)
@@ -37,15 +32,15 @@ extern "C" void UART_Task(void *argument)
 
                 cmd[idx] = '\0';
 
-                CommandID cmdID = parseCommand(cmd);
+                CommandMessage msg = parseCommand(cmd);
 
-                if (cmdID == CMD_ID_UNKNOWN)
+                if (msg.id == CMD_ID_UNKNOWN)
                 {
                     HAL_UART_Transmit(&huart2, (uint8_t*)"Syntax Error\r\n", 14, 10);
                 }
                 else
                 {
-                    osMessageQueuePut(QueueLedCommandsHandle, &cmdID, 0, 0);
+                    osMessageQueuePut(QueueLedCommandsHandle, &msg, 0, 0);
 
                     HAL_UART_Transmit(&huart2, (uint8_t*)"OK\r\n", 4, 10);
                 }
