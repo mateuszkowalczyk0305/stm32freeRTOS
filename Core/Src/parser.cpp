@@ -33,14 +33,14 @@ static uint8_t parseUint8(const char* text, uint8_t* value)
 
 CommandMessage parseCommand(const char* cmd)
 {
-    CommandMessage msg;
+    CommandMessage msg = {};
 
     msg.id = CMD_ID_UNKNOWN;
-    msg.led.ledNumber = 0;
-    msg.led.brightness = 0;
-    msg.led.red = 0;
-    msg.led.green = 0;
-    msg.led.blue = 0;
+
+    if (cmd == nullptr)
+    {
+        return msg;
+    }
 
     if (strcmp(cmd, "START LED") == 0)
     {
@@ -55,11 +55,16 @@ CommandMessage parseCommand(const char* cmd)
     }
 
     /*
-     * Format:
-     * L,<numer_diody>,<jasnosc>,<red>,<green>,<blue>;
+     * Nowy format:
+     * L,<jasnosc>,<red>,<green>,<blue>;
      *
      * Przyklad:
-     * L,1,255,255,0,0;
+     * L,255,255,0,0;
+     *
+     * brightness: 0-255
+     * red:        0-255
+     * green:      0-255
+     * blue:       0-255
      */
     if (cmd[0] == 'L' && cmd[1] == ',')
     {
@@ -90,9 +95,9 @@ CommandMessage parseCommand(const char* cmd)
             return msg;
         }
 
-        uint8_t values[5];
+        uint8_t values[4];
 
-        for (uint8_t i = 0; i < 5; i++)
+        for (uint8_t i = 0; i < 4; i++)
         {
             token = strtok(nullptr, ",");
 
@@ -107,7 +112,7 @@ CommandMessage parseCommand(const char* cmd)
             }
         }
 
-        // Jeśli po 5 argumentach jest jeszcze coś, to błąd składni.
+        // Jeśli po 4 argumentach jest jeszcze coś, to błąd składni.
         token = strtok(nullptr, ",");
 
         if (token != nullptr)
@@ -115,18 +120,12 @@ CommandMessage parseCommand(const char* cmd)
             return msg;
         }
 
-        // numer diody: 1-13
-        if (values[0] < 1 || values[0] > 13)
-        {
-            return msg;
-        }
-
         msg.id = CMD_ID_SET_LED;
-        msg.led.ledNumber = values[0];
-        msg.led.brightness = values[1];
-        msg.led.red = values[2];
-        msg.led.green = values[3];
-        msg.led.blue = values[4];
+
+        msg.led.brightness = values[0];
+        msg.led.red = values[1];
+        msg.led.green = values[2];
+        msg.led.blue = values[3];
 
         return msg;
     }
