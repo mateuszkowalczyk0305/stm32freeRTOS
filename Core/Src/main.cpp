@@ -21,15 +21,21 @@
 #include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+/* Uart interpreter */
 #include "RingBuffer.h"
 #include "bsp_uart.h"
 
+/* Leds */
+#include "ws2812b.h"
 
+/* freeRTOS initialization */
 extern "C" void MX_FREERTOS_Init(void);
 
 
@@ -109,13 +115,18 @@ int main(void)
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   /* Uart interpreter initialization */
   uartBuffer.init();
   BSP_UART_Init(&huart2, &uartBuffer);
 
+  /* Adc + Dma initialization */
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_dma_buffer, 16);
+
+  /* Leds initialization */
+  WS2812_Init();
 
   /* USER CODE END 2 */
 
@@ -177,9 +188,11 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_ADC12;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_TIM1
+                              |RCC_PERIPHCLK_ADC12;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
+  PeriphClkInit.Tim1ClockSelection = RCC_TIM1CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();

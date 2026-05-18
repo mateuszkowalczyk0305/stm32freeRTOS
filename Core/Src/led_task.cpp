@@ -5,6 +5,7 @@
 #include "gpio.h"
 #include "commands.h"
 #include "usart.h"
+#include "ws2812b.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -15,6 +16,17 @@ extern UART_HandleTypeDef huart2;
 extern osMessageQueueId_t QueueLedCommandsHandle;
 
 static_assert(sizeof(CommandMessage) == 12, "CommandMessage size must be 12 bytes");
+
+typedef struct
+{
+    uint8_t ledCount;
+    uint8_t brightness;
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+} LedDebugData;
+
+volatile LedDebugData ledDebug = {};
 
 extern "C" void LED_Task(void *argument)
 {
@@ -27,6 +39,18 @@ extern "C" void LED_Task(void *argument)
     uint8_t currentRed = 255;
     uint8_t currentGreen = 255;
     uint8_t currentBlue = 255;
+
+    ledDebug.ledCount = currentLedCount;
+    ledDebug.brightness = currentBrightness;
+    ledDebug.red = currentRed;
+    ledDebug.green = currentGreen;
+    ledDebug.blue = currentBlue;
+
+    WS2812_SetActiveLeds(currentLedCount,
+                         currentBrightness,
+                         currentRed,
+                         currentGreen,
+                         currentBlue);
 
     while (1)
     {
@@ -54,7 +78,19 @@ extern "C" void LED_Task(void *argument)
 
                     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
-                    const char txBuffer[] = "LED blinking STOP\r\n";
+                    /*
+                     * STOP LED gasi też pasek WS2812B.
+                     */
+                    currentLedCount = 0;
+                    ledDebug.ledCount = currentLedCount;
+
+                    WS2812_SetActiveLeds(currentLedCount,
+                                         currentBrightness,
+                                         currentRed,
+                                         currentGreen,
+                                         currentBlue);
+
+                    const char txBuffer[] = "LED blinking STOP, WS2812 OFF\r\n";
 
                     HAL_UART_Transmit(&huart2,
                                       (uint8_t*)txBuffer,
@@ -72,6 +108,17 @@ extern "C" void LED_Task(void *argument)
                     currentRed = msg.led.red;
                     currentGreen = msg.led.green;
                     currentBlue = msg.led.blue;
+
+                    ledDebug.brightness = currentBrightness;
+                    ledDebug.red = currentRed;
+                    ledDebug.green = currentGreen;
+                    ledDebug.blue = currentBlue;
+
+                    WS2812_SetActiveLeds(currentLedCount,
+                                         currentBrightness,
+                                         currentRed,
+                                         currentGreen,
+                                         currentBlue);
 
                     char txBuffer[120];
 
@@ -98,6 +145,14 @@ extern "C" void LED_Task(void *argument)
                     blinking = false;
 
                     currentLedCount = msg.ledCount;
+
+                    ledDebug.ledCount = currentLedCount;
+
+                    WS2812_SetActiveLeds(currentLedCount,
+                                         currentBrightness,
+                                         currentRed,
+                                         currentGreen,
+                                         currentBlue);
 
                     char txBuffer[140];
 
