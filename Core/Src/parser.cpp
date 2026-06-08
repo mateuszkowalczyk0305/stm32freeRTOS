@@ -42,15 +42,27 @@ CommandMessage parseCommand(const char* cmd)
         return msg;
     }
 
-    if (strcmp(cmd, "START LED") == 0)
+    if (strcmp(cmd, "START LED;") == 0)
     {
         msg.id = CMD_ID_START_LED;
         return msg;
     }
 
-    if (strcmp(cmd, "STOP LED") == 0)
+    if (strcmp(cmd, "STOP LED;") == 0)
     {
         msg.id = CMD_ID_STOP_LED;
+        return msg;
+    }
+
+    if (strcmp(cmd, "SD;") == 0)
+    {
+        msg.id = CMD_ID_SET_DARK_REF;
+        return msg;
+    }
+
+    if (strcmp(cmd, "SL;") == 0)
+    {
+        msg.id = CMD_ID_SET_LIGHT_REF;
         return msg;
     }
 

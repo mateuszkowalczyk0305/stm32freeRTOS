@@ -8,6 +8,8 @@
 extern volatile uint16_t adc_dma_buffer[16];
 extern volatile uint16_t photo_adc_raw;
 extern volatile uint8_t photo_led_count;
+extern volatile uint16_t photo_adc_dark_ref;
+extern volatile uint16_t photo_adc_light_ref;
 
 extern osMessageQueueId_t QueueLedCommandsHandle;
 
@@ -57,12 +59,46 @@ static uint16_t filterAdcIir(uint16_t adcValue)
 
 static uint8_t mapAdcToLedCount(uint16_t adcValue)
 {
-    if (adcValue > ADC_MAX_VALUE)
+    uint16_t darkRef = photo_adc_dark_ref;
+    uint16_t lightRef = photo_adc_light_ref;
+
+    if (darkRef > ADC_MAX_VALUE)
     {
-        adcValue = ADC_MAX_VALUE;
+        darkRef = ADC_MAX_VALUE;
     }
 
-    return static_cast<uint8_t>((adcValue * WS2812_LED_COUNT) / ADC_MAX_VALUE);
+    if (lightRef > ADC_MAX_VALUE)
+    {
+        lightRef = ADC_MAX_VALUE;
+    }
+
+    if (lightRef <= darkRef)
+    {
+        if (darkRef < ADC_MAX_VALUE)
+        {
+            lightRef = darkRef + 1U;
+        }
+        else
+        {
+            darkRef = ADC_MAX_VALUE - 1U;
+            lightRef = ADC_MAX_VALUE;
+        }
+    }
+
+    if (adcValue <= darkRef)
+    {
+        return 1U;
+    }
+
+    if (adcValue >= lightRef)
+    {
+        return WS2812_LED_COUNT;
+    }
+
+    uint32_t span = static_cast<uint32_t>(lightRef - darkRef);
+    uint32_t relative = static_cast<uint32_t>(adcValue - darkRef);
+
+    return static_cast<uint8_t>(1U + ((relative * (WS2812_LED_COUNT - 1U)) / span));
 }
 
 extern "C" void Photo_Task(void *argument)

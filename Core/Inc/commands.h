@@ -13,6 +13,8 @@ typedef uint8_t CommandID;
 #define CMD_ID_STOP_LED        ((CommandID)1)
 #define CMD_ID_SET_LED         ((CommandID)2)
 #define CMD_ID_SET_LED_COUNT   ((CommandID)3)
+#define CMD_ID_SET_DARK_REF    ((CommandID)4)
+#define CMD_ID_SET_LIGHT_REF   ((CommandID)5)
 #define CMD_ID_UNKNOWN         ((CommandID)255)
 
 /*
