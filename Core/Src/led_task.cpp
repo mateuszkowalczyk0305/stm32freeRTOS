@@ -20,7 +20,6 @@ static_assert(sizeof(CommandMessage) == 12, "CommandMessage size must be 12 byte
 typedef struct
 {
     uint8_t ledCount;
-    uint8_t brightness;
     uint8_t red;
     uint8_t green;
     uint8_t blue;
@@ -34,20 +33,16 @@ extern "C" void LED_Task(void *argument)
     bool blinking = false;
 
     uint8_t currentLedCount = 0;
-
-    uint8_t currentBrightness = 255;
     uint8_t currentRed = 255;
     uint8_t currentGreen = 255;
     uint8_t currentBlue = 255;
 
     ledDebug.ledCount = currentLedCount;
-    ledDebug.brightness = currentBrightness;
     ledDebug.red = currentRed;
     ledDebug.green = currentGreen;
     ledDebug.blue = currentBlue;
 
     WS2812_SetActiveLeds(currentLedCount,
-                         currentBrightness,
                          currentRed,
                          currentGreen,
                          currentBlue);
@@ -85,7 +80,6 @@ extern "C" void LED_Task(void *argument)
                     ledDebug.ledCount = currentLedCount;
 
                     WS2812_SetActiveLeds(currentLedCount,
-                                         currentBrightness,
                                          currentRed,
                                          currentGreen,
                                          currentBlue);
@@ -104,18 +98,15 @@ extern "C" void LED_Task(void *argument)
                 {
                     blinking = false;
 
-                    currentBrightness = msg.led.brightness;
                     currentRed = msg.led.red;
                     currentGreen = msg.led.green;
                     currentBlue = msg.led.blue;
 
-                    ledDebug.brightness = currentBrightness;
                     ledDebug.red = currentRed;
                     ledDebug.green = currentGreen;
                     ledDebug.blue = currentBlue;
 
                     WS2812_SetActiveLeds(currentLedCount,
-                                         currentBrightness,
                                          currentRed,
                                          currentGreen,
                                          currentBlue);
@@ -123,8 +114,7 @@ extern "C" void LED_Task(void *argument)
                     char txBuffer[120];
 
                     snprintf(txBuffer, sizeof(txBuffer),
-                             "COLOR CMD: brightness=%u R=%u G=%u B=%u | active LEDs=%u\r\n",
-                             currentBrightness,
+                             "COLOR CMD: R=%u G=%u B=%u | active LEDs=%u\r\n",
                              currentRed,
                              currentGreen,
                              currentBlue,
@@ -149,7 +139,6 @@ extern "C" void LED_Task(void *argument)
                     ledDebug.ledCount = currentLedCount;
 
                     WS2812_SetActiveLeds(currentLedCount,
-                                         currentBrightness,
                                          currentRed,
                                          currentGreen,
                                          currentBlue);
@@ -157,10 +146,9 @@ extern "C" void LED_Task(void *argument)
                     char txBuffer[140];
 
                     snprintf(txBuffer, sizeof(txBuffer),
-                             "PHOTO ADC: %u -> LED count: %u | brightness=%u R=%u G=%u B=%u\r\n",
+                             "PHOTO ADC: %u -> LED count: %u | R=%u G=%u B=%u\r\n",
                              msg.adcRaw,
                              currentLedCount,
-                             currentBrightness,
                              currentRed,
                              currentGreen,
                              currentBlue);

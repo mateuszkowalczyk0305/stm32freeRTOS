@@ -16,8 +16,7 @@ typedef uint8_t CommandID;
 #define CMD_ID_UNKNOWN         ((CommandID)255)
 
 /*
- * UART ustawia tylko:
- * - brightness
+ * UART ustawia tylko kolor RGB:
  * - red
  * - green
  * - blue
@@ -26,7 +25,7 @@ typedef uint8_t CommandID;
  */
 typedef struct
 {
-    uint8_t brightness;
+    uint8_t unused;
     uint8_t red;
     uint8_t green;
     uint8_t blue;

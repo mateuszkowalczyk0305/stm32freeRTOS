@@ -10,7 +10,6 @@ extern "C" {
 void WS2812_Init(void);
 
 void WS2812_SetActiveLeds(uint8_t activeLedCount,
-                          uint8_t brightness,
                           uint8_t red,
                           uint8_t green,
                           uint8_t blue);

@@ -55,16 +55,15 @@ CommandMessage parseCommand(const char* cmd)
     }
 
     /*
-     * Nowy format:
-     * L,<jasnosc>,<red>,<green>,<blue>;
+     * Format:
+     * L,<red>,<green>,<blue>;
      *
      * Przyklad:
-     * L,255,255,0,0;
+     * L,255,0,0;
      *
-     * brightness: 0-255
-     * red:        0-255
-     * green:      0-255
-     * blue:       0-255
+     * red:   0-255
+     * green: 0-255
+     * blue:  0-255
      */
     if (cmd[0] == 'L' && cmd[1] == ',')
     {
@@ -95,9 +94,9 @@ CommandMessage parseCommand(const char* cmd)
             return msg;
         }
 
-        uint8_t values[4];
+        uint8_t values[3];
 
-        for (uint8_t i = 0; i < 4; i++)
+        for (uint8_t i = 0; i < 3; i++)
         {
             token = strtok(nullptr, ",");
 
@@ -112,7 +111,7 @@ CommandMessage parseCommand(const char* cmd)
             }
         }
 
-        // Jeśli po 4 argumentach jest jeszcze coś, to błąd składni.
+        // Jeśli po 3 argumentach jest jeszcze coś, to błąd składni.
         token = strtok(nullptr, ",");
 
         if (token != nullptr)
@@ -122,10 +121,10 @@ CommandMessage parseCommand(const char* cmd)
 
         msg.id = CMD_ID_SET_LED;
 
-        msg.led.brightness = values[0];
-        msg.led.red = values[1];
-        msg.led.green = values[2];
-        msg.led.blue = values[3];
+        msg.led.unused = 0;
+        msg.led.red = values[0];
+        msg.led.green = values[1];
+        msg.led.blue = values[2];
 
         return msg;
     }
