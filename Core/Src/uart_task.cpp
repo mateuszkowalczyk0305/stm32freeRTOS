@@ -21,6 +21,14 @@ extern osMessageQueueId_t QueueLedCommandsHandle;
 #define ADC_MAX_VALUE 4095U
 #define UART_TX_TIMEOUT_MS 200U
 
+static void uartSendByte(uint8_t byte)
+{
+    HAL_UART_Transmit(&huart2,
+                      &byte,
+                      1U,
+                      UART_TX_TIMEOUT_MS);
+}
+
 static void uartSendLiteral(const char* text)
 {
     HAL_UART_Transmit(&huart2,
@@ -54,6 +62,8 @@ extern "C" void UART_Task(void *argument)
     {
         if (uartBuffer.pop(c))
         {
+            uartSendByte(c);
+
             if (c == '\n' || c == '\r')
             {
                 continue;
