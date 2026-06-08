@@ -82,6 +82,8 @@ volatile uint16_t photo_adc_raw = 0;
 volatile uint8_t photo_led_count = 0;
 volatile uint16_t photo_adc_dark_ref = 0;
 volatile uint16_t photo_adc_light_ref = 4095;
+volatile uint8_t photo_dark_ref_set = 0;
+volatile uint8_t photo_light_ref_set = 0;
 
 /* USER CODE END 0 */
 

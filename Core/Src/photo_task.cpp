@@ -10,6 +10,8 @@ extern volatile uint16_t photo_adc_raw;
 extern volatile uint8_t photo_led_count;
 extern volatile uint16_t photo_adc_dark_ref;
 extern volatile uint16_t photo_adc_light_ref;
+extern volatile uint8_t photo_dark_ref_set;
+extern volatile uint8_t photo_light_ref_set;
 
 extern osMessageQueueId_t QueueLedCommandsHandle;
 
@@ -59,6 +61,11 @@ static uint16_t filterAdcIir(uint16_t adcValue)
 
 static uint8_t mapAdcToLedCount(uint16_t adcValue)
 {
+    if ((photo_dark_ref_set == 0U) || (photo_light_ref_set == 0U))
+    {
+        return 0U;
+    }
+
     uint16_t darkRef = photo_adc_dark_ref;
     uint16_t lightRef = photo_adc_light_ref;
 
@@ -87,7 +94,7 @@ static uint8_t mapAdcToLedCount(uint16_t adcValue)
 
     if (adcValue <= darkRef)
     {
-        return 1U;
+        return 0U;
     }
 
     if (adcValue >= lightRef)
@@ -97,8 +104,14 @@ static uint8_t mapAdcToLedCount(uint16_t adcValue)
 
     uint32_t span = static_cast<uint32_t>(lightRef - darkRef);
     uint32_t relative = static_cast<uint32_t>(adcValue - darkRef);
+    uint8_t mapped = static_cast<uint8_t>((relative * WS2812_LED_COUNT) / span);
 
-    return static_cast<uint8_t>(1U + ((relative * (WS2812_LED_COUNT - 1U)) / span));
+    if (mapped == 0U)
+    {
+        mapped = 1U;
+    }
+
+    return mapped;
 }
 
 extern "C" void Photo_Task(void *argument)

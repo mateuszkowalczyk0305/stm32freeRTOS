@@ -5,10 +5,13 @@
 #include "parser.h"
 #include "commands.h"
 #include <string.h>
+#include <stdio.h>
 
 extern volatile uint16_t photo_adc_raw;
 extern volatile uint16_t photo_adc_dark_ref;
 extern volatile uint16_t photo_adc_light_ref;
+extern volatile uint8_t photo_dark_ref_set;
+extern volatile uint8_t photo_light_ref_set;
 
 extern RingBuffer uartBuffer;
 extern UART_HandleTypeDef huart2;
@@ -16,6 +19,30 @@ extern osMessageQueueId_t QueueLedCommandsHandle;
 
 #define CMD_MAX 32
 #define ADC_MAX_VALUE 4095U
+#define UART_TX_TIMEOUT_MS 200U
+
+static void uartSendLiteral(const char* text)
+{
+    HAL_UART_Transmit(&huart2,
+                      (uint8_t*)text,
+                      (uint16_t)strlen(text),
+                      UART_TX_TIMEOUT_MS);
+}
+
+static void uartSendFormatted(const char* buffer, int len)
+{
+    if (len <= 0)
+    {
+        return;
+    }
+
+    uint16_t txLen = (len < (int)80U) ? (uint16_t)len : 79U;
+
+    HAL_UART_Transmit(&huart2,
+                      (uint8_t*)buffer,
+                      txLen,
+                      UART_TX_TIMEOUT_MS);
+}
 
 extern "C" void UART_Task(void *argument)
 {
@@ -27,9 +54,6 @@ extern "C" void UART_Task(void *argument)
     {
         if (uartBuffer.pop(c))
         {
-            // Echo odebranego znaku
-            HAL_UART_Transmit(&huart2, &c, 1, 10);
-
             if (c == '\n' || c == '\r')
             {
                 continue;
@@ -47,11 +71,12 @@ extern "C" void UART_Task(void *argument)
 
                     if (msg.id == CMD_ID_UNKNOWN)
                     {
-                        HAL_UART_Transmit(&huart2, (uint8_t*)"Syntax Error\r\n", 14, 10);
+                        uartSendLiteral("Syntax Error\r\n");
                     }
                     else if (msg.id == CMD_ID_SET_DARK_REF)
                     {
                         uint16_t adcNow = photo_adc_raw;
+                        char response[80];
 
                         if (adcNow > ADC_MAX_VALUE)
                         {
@@ -59,17 +84,20 @@ extern "C" void UART_Task(void *argument)
                         }
 
                         photo_adc_dark_ref = adcNow;
+                        photo_dark_ref_set = 1U;
 
                         if (photo_adc_light_ref <= adcNow)
                         {
                             photo_adc_light_ref = (adcNow < ADC_MAX_VALUE) ? (adcNow + 1U) : ADC_MAX_VALUE;
                         }
 
-                        HAL_UART_Transmit(&huart2, (uint8_t*)"OK SD\r\n", 7, 10);
+                        int len = snprintf(response, sizeof(response), "OK DARK SET TO ADC VAL: %u;\r\n", (unsigned int)adcNow);
+                        uartSendFormatted(response, len);
                     }
                     else if (msg.id == CMD_ID_SET_LIGHT_REF)
                     {
                         uint16_t adcNow = photo_adc_raw;
+                        char response[80];
 
                         if (adcNow > ADC_MAX_VALUE)
                         {
@@ -77,18 +105,20 @@ extern "C" void UART_Task(void *argument)
                         }
 
                         photo_adc_light_ref = adcNow;
+                        photo_light_ref_set = 1U;
 
                         if (photo_adc_light_ref <= photo_adc_dark_ref)
                         {
                             photo_adc_dark_ref = (photo_adc_light_ref > 0U) ? (photo_adc_light_ref - 1U) : 0U;
                         }
 
-                        HAL_UART_Transmit(&huart2, (uint8_t*)"OK SL\r\n", 7, 10);
+                        int len = snprintf(response, sizeof(response), "OK LIGHT SET TO ADC VAL: %u;\r\n", (unsigned int)adcNow);
+                        uartSendFormatted(response, len);
                     }
                     else
                     {
                         osMessageQueuePut(QueueLedCommandsHandle, &msg, 0, 0);
-                        HAL_UART_Transmit(&huart2, (uint8_t*)"OK\r\n", 4, 10);
+                        uartSendLiteral("OK\r\n");
                     }
 
                     idx = 0;
@@ -96,7 +126,7 @@ extern "C" void UART_Task(void *argument)
             }
             else
             {
-                HAL_UART_Transmit(&huart2, (uint8_t*)"Syntax Error\r\n", 14, 10);
+                uartSendLiteral("Syntax Error\r\n");
                 idx = 0;
             }
         }

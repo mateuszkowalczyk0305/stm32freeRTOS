@@ -4,15 +4,11 @@
 #include "main.h"
 #include "gpio.h"
 #include "commands.h"
-#include "usart.h"
 #include "ws2812b.h"
 
-#include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-extern UART_HandleTypeDef huart2;
 extern osMessageQueueId_t QueueLedCommandsHandle;
 
 static_assert(sizeof(CommandMessage) == 12, "CommandMessage size must be 12 bytes");
@@ -57,13 +53,6 @@ extern "C" void LED_Task(void *argument)
                 {
                     blinking = true;
 
-                    const char txBuffer[] = "LED blinking START\r\n";
-
-                    HAL_UART_Transmit(&huart2,
-                                      (uint8_t*)txBuffer,
-                                      strlen(txBuffer),
-                                      100);
-
                     break;
                 }
 
@@ -83,13 +72,6 @@ extern "C" void LED_Task(void *argument)
                                          currentRed,
                                          currentGreen,
                                          currentBlue);
-
-                    const char txBuffer[] = "LED blinking STOP, WS2812 OFF\r\n";
-
-                    HAL_UART_Transmit(&huart2,
-                                      (uint8_t*)txBuffer,
-                                      strlen(txBuffer),
-                                      100);
 
                     break;
                 }
@@ -111,20 +93,6 @@ extern "C" void LED_Task(void *argument)
                                          currentGreen,
                                          currentBlue);
 
-                    char txBuffer[120];
-
-                    snprintf(txBuffer, sizeof(txBuffer),
-                             "COLOR CMD: R=%u G=%u B=%u | active LEDs=%u\r\n",
-                             currentRed,
-                             currentGreen,
-                             currentBlue,
-                             currentLedCount);
-
-                    HAL_UART_Transmit(&huart2,
-                                      (uint8_t*)txBuffer,
-                                      strlen(txBuffer),
-                                      100);
-
                     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 
                     break;
@@ -142,34 +110,11 @@ extern "C" void LED_Task(void *argument)
                                          currentRed,
                                          currentGreen,
                                          currentBlue);
-
-                    char txBuffer[140];
-
-                    snprintf(txBuffer, sizeof(txBuffer),
-                             "PHOTO ADC: %u -> LED count: %u | R=%u G=%u B=%u\r\n",
-                             msg.adcRaw,
-                             currentLedCount,
-                             currentRed,
-                             currentGreen,
-                             currentBlue);
-
-                    HAL_UART_Transmit(&huart2,
-                                      (uint8_t*)txBuffer,
-                                      strlen(txBuffer),
-                                      100);
-
                     break;
                 }
 
                 default:
                 {
-                    const char txBuffer[] = "Unknown LED command\r\n";
-
-                    HAL_UART_Transmit(&huart2,
-                                      (uint8_t*)txBuffer,
-                                      strlen(txBuffer),
-                                      100);
-
                     break;
                 }
             }
