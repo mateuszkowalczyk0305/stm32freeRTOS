@@ -165,22 +165,22 @@ sequenceDiagram
     participant Q as QueueLedCommands
     participant L as LED_Task
 
-    U->>I: "L,255,0,0;"
+    U->>I: L,255,0,0;
     I->>R: push(byte)
     T->>R: pop(byte)
     T->>P: parseCommand(cmd)
     alt komenda poprawna
         P-->>T: CommandMessage
         T->>Q: osMessageQueuePut
-        T-->>U: OK\r\n
+        T-->>U: OK CRLF
         L->>Q: osMessageQueueGet
         L->>L: wykonanie CMD_ID_SET_LED
     else komenda kalibracji
-        T->>T: SD; lub SL; -> zapis referencji ADC
-        T-->>U: OK DARK/LIGHT SET TO ADC VAL: ...;\r\n
+        T->>T: SD albo SL, zapis referencji ADC
+        T-->>U: OK DARK albo LIGHT SET TO ADC VAL, CRLF
     else błąd składni
         P-->>T: CMD_ID_UNKNOWN
-        T-->>U: Syntax Error\r\n
+        T-->>U: Syntax Error CRLF
     end
 ```
 
